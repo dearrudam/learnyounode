@@ -1,0 +1,113 @@
+var http = require('http');
+var bl = require('bl');
+var count = 0;
+var responses = [];
+
+
+function printResults() {
+    count++;
+    if (count === 3) {
+        responses.forEach(function (item) {
+            console.log(item);
+        });
+    }
+}
+
+function httpGet(index) {
+    var size = 0;
+
+    http.get(process.argv[2 + index], function (response) {
+        response
+            .pipe(bl(function (err, data) {
+                if (err) {
+                    return console.error(err);
+                }
+                responses[index] = data.toString();
+                printResults();
+            }))
+            // Without 'bl' module
+            
+            // .setEncoding('utf8')
+            // .on('error', console.error)
+            // .on('data', function (data) {
+            //     if(!responses[index]){responses[index]='';}
+            //     responses[index] += data.toString();
+            // })
+            // .on('end', function () {
+            //     printResults();
+            // })
+            ;
+
+    });
+}
+
+
+for (var i = 0; i < 3; i++) {
+    httpGet(i);
+}
+
+// First solution:
+// 
+// var http = require('http');
+// var url1 = process.argv[2];
+// var url2 = process.argv[3];
+// var url3 = process.argv[4];
+
+// var juggling = function (response, nextFn) {
+//     var responseContent = '';
+//     response
+//         .on('error', console.err)
+//         .on('data', function (data) {
+//             responseContent += data.toString();
+//         })
+//         .on('end', function () {
+//             console.log(responseContent);
+//             if (nextFn) nextFn();
+//         });
+// }
+// 
+// 
+// http.get(url1, function (response1) {
+//     juggling(response1, function () {
+//         http.get(url2, function (response2) {
+//             juggling(response2, function () {
+//                 http.get(url3, juggling);
+//             });
+//         });
+//     });
+// });
+
+// Here's the official solution in case you want to compare notes:
+// ─────────────────────────────────────────────────────────────────────────────
+
+// var http = require('http')
+// var bl = require('bl')
+// var results = []
+// var count = 0
+
+// function printResults() {
+//     for (var i = 0; i < 3; i++) {
+//         console.log(results[i])
+//     }
+// }
+
+// function httpGet(index) {
+//     http.get(process.argv[2 + index], function (response) {
+//         response.pipe(bl(function (err, data) {
+//             if (err) {
+//                 return console.error(err)
+//             }
+
+//             results[index] = data.toString()
+//             count++
+
+//             if (count === 3) {
+//                 printResults()
+//             }
+//         }))
+//     })
+// }
+
+// for (var i = 0; i < 3; i++) {
+//     httpGet(i)
+// }
